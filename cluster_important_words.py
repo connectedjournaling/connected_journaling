@@ -10,7 +10,7 @@ from collections import Counter
 from wordcloud import WordCloud, STOPWORDS
 from spacy.lang.en.stop_words import STOP_WORDS
 
-# Peter's comment again
+# Peter's comment again pt 2
 
 # constants defined here:
 storage_location = "C:\\Users\\hsuen\\\Desktop\\connected_journaling\\data\\bbc-text.csv"
