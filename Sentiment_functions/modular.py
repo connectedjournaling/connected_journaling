@@ -8,19 +8,20 @@
 
 # Info on Tensorflow datasets: https://stackoverflow.com/questions/56820723/what-is-tensorflow-python-data-ops-dataset-ops-optionsdataset
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+#from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 import tensorflow_datasets as tfds
 import tensorflow as tf
-#print(tf.__version__)
+
 import matplotlib.pyplot as plt
 
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
 
+
 # Build model to the specs
-def build_model: 
+def build_model():
     tokenizer = info.features['text'].encoder
 
     model = tf.keras.Sequential([
@@ -33,6 +34,7 @@ def build_model:
     model.summary()
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
+
 
 # Train model with training data
 def train_model(model, train_data):
