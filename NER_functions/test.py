@@ -21,7 +21,7 @@ if __name__ == "__main__":
 	testNER.prepare_data(data)
 	testNER.update_entity(existing_model, output_model_dir, 100)
 	testNER.evaluate(["Wavexy is a footballer, Andrew is rich."], 
-					  "./Model")
+					  output_model_dir)
 	
 
 	"""                     		DPR Test 						         """
