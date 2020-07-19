@@ -12,7 +12,9 @@ pandas
 
 # Data:
 imdb data
+bbc-headline data
 
 
 # Training:
-Might need to only load 10,000 
+Seem to only be able to process 10,000 observations @ a time, will need to worry about padding since they won't all be the same length
+
