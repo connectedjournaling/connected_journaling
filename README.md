@@ -1,17 +1,17 @@
 # Requirements:
 
-pip install tensorflow
+pip install tensorflow <br>
 pip install tensorflow-datasets
 
-Python modules:
+Python modules: <br>
 Spacy <br>
-sklearn
-numpy
+sklearn <br>
+numpy <br>
 pandas
 
 
 # Data:
-imdb data
+imdb data <br>
 bbc-headline data
 
 
