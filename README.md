@@ -11,7 +11,10 @@ pandas <br>
 nltk <br> 
 
 python -m spacy download en_core_web_md --> run this in terminal <br>
-nltk.download('punkt') --> run this in python
+nltk.download('punkt') --> run this in python <br>
+
+Make sure you have the pre-trained word embeddings from Google's word2vec package. Downloadble as .bin file here:
+https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit
   
 
 
