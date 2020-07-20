@@ -105,3 +105,14 @@ fabric.properties
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/misc.xml
 *.xml
+
+data/imdb_1.npy
+data/imdb_2.npy
+data/imdb_3.npy
+data/imdb_4.npy
+data/labels_imdb_1.npy
+data/labels_imdb_2.npy
+data/labels_imdb_3.npy
+data/labels_imdb_4.npy
+
+data/*

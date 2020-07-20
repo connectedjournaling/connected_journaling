@@ -26,6 +26,6 @@ if __name__ == "__main__":
 
 	"""                     		DPR Test 						         """
 	testDPR = DPR("en_core_web_md")
-	print (testDPR.get_relation("I wonder how she felt today."))
-	print (testDPR.get_noun_chunks("Arsenal can be a better team"))
-	print (testDPR.get_verbs("Arsenal can be a better team"))
+	print(testDPR.get_relation("I wonder how she felt today."))
+	print(testDPR.get_noun_chunks("Arsenal can be a better team"))
+	print(testDPR.get_verbs("Arsenal can be a better team"))

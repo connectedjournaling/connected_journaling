@@ -11,13 +11,12 @@ from wordcloud import WordCloud, STOPWORDS
 from spacy.lang.en.stop_words import STOP_WORDS
 
 # constants defined here:
-storage_location = "C:\\Users\\hsuen\\\Desktop\\connected_journaling\\data\\bbc-text.csv"
 additional_stop_words = ['said']
 
 # cutoff = 0.7 and vocab = 100 are a good trade-off
 TFID_cutoff = 0.7
 vocab_size = 100
-clustering_algo = 'DBSCAN'  # options are 'kmeans' & 'DBSCAN'
+clustering_algo = 'kmeans'  # options are 'kmeans' & 'DBSCAN'
 
 # params for kmeans:
 num_clusters = 5
@@ -33,7 +32,7 @@ for word_elem in additional_stop_words:
     STOPWORDS.add(word_elem)
 
 
-def option_1():
+def get_important_words(path_to_file, path_to_embeddings):
     # Parameter Options:
     # the "input" parameter can also be "filename" or "file" if we want to
     # read from a file. @ the moment we pass in the raw words
@@ -45,7 +44,7 @@ def option_1():
                                  strip_accents='unicode', analyzer='word', ngram_range=(1, 2), max_features=vocab_size)
 
     # read in the sample data
-    train_text = pd.read_csv(storage_location)
+    train_text = pd.read_csv(path_to_file)
     train_text = train_text['text']
 
     # feature_matrix will be sparse, use "feature_matrix.toarray()" to get an array representation
@@ -67,7 +66,7 @@ def option_1():
     # by the end of this we get an array of all the important words from each document
 
     # load in a pre-trained word-embedding from google's word2vec
-    model = KeyedVectors.load_word2vec_format('C:\\Users\\hsuen\\Desktop\\bigData\\GoogleNews-vectors-negative300.bin',
+    model = KeyedVectors.load_word2vec_format(path_to_embeddings,
                                               binary=True)
 
     # create a new feature matrix for each important from above
@@ -86,7 +85,8 @@ def option_1():
         # Run k-means to get groups of similar words together
         kmeans = KMeans(n_clusters=num_clusters, init='k-means++', random_state=0)
         labels = kmeans.fit_predict(word_vectors)
-        colors = ["r", "b", "c", "y", "m"]
+        colors = [plt.cm.Spectral(each)
+                  for each in np.linspace(0, 1, num_clusters)]
         n_clusters_ = num_clusters
 
     elif clustering_algo == 'DBSCAN':
@@ -114,16 +114,19 @@ def option_1():
     for i, txt in enumerate(imp_word_list):
         plt.annotate(txt, (x_points[i], y_points[i]))
 
-    plt.title('Estimated number of clusters: %d' % n_clusters_)
+    plt.title('Number of clusters: %d' % n_clusters_)
     plt.show()
 
+    # return a dataframe of the important words and their grouping
+    return pd.DataFrame([imp_word_list, labels]).T, num_clusters
 
-def option_2():
+
+def option_2(path_to_file):
     vectorizer = TfidfVectorizer(input='content', stop_words='english', lowercase=True, encoding='UTF-8',
                                  strip_accents='unicode', analyzer='word', ngram_range=(1, 2), max_features=100)
 
     # read in the sample data
-    train_text = pd.read_csv(storage_location)
+    train_text = pd.read_csv(path_to_file)
     labels = train_text['category']
     train_text = train_text['text']
 
@@ -187,5 +190,4 @@ def option_2():
     print('here')
 
 
-if __name__ == '__main__':
-    option_1()
+
