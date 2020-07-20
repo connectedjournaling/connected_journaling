@@ -10,8 +10,9 @@ numpy <br>
 pandas <br>
 nltk <br> 
 
-python -m spacy download en_core_web_md --> make sure this is downloaded first as well
-
+python -m spacy download en_core_web_md --> run this in terminal
+nltk.download('punkt') --> run this in python
+  
 
 
 # Data:
