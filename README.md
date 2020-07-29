@@ -12,6 +12,9 @@ nltk <br>
 
 python -m spacy download en_core_web_md --> run this in terminal <br>
 nltk.download('punkt') --> run this in python <br>
+nltk.download('wordnet') --> run this in python <br>
+
+Word net is a massive lexicon created by Princeton that allows you to generate synonyms, antonyms, similarity measures, and also go up "hierarchies" to see what groups a particular word may be a part of
 
 Make sure you have the pre-trained word embeddings from Google's word2vec package. Downloadble as .bin file here:
 https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit
