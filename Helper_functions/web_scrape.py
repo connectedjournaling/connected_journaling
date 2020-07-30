@@ -16,7 +16,7 @@ soup = BeautifulSoup(response.text, 'html.parser')
 all_links = soup.findAll('a')
 CSV_name = "./diary#1.csv"
 all_sources = [] 
-paragraph_list = []
+paragraph_list = [['title', 'text']]
 
 """ Getting all the links of diary entires on the website """
 for link in all_links:
@@ -45,6 +45,7 @@ for source in all_sources:
 			count += 1
 			if count > 2: # This is to skip standard garbage on site
 				text = x.text
+				text = text.replace(',', "")
 				# 'Login' signifies end of journal entry
 				#  Whenever we find the end of a journal entry, we take all the text. 
 				#  If we don't find the end of the journal entry, we move to the next paragraph. 
