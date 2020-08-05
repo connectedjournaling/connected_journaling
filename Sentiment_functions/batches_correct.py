@@ -1,3 +1,4 @@
+print("Importing..............")
 import pandas as pd
 import tensorflow as tf
 import numpy as np
@@ -8,18 +9,20 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from nltk.corpus import stopwords
 from gensim.models import KeyedVectors
+
+from tensorflow.keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
 
 ## LOAD CONSTANTS HERE ##
 table = str.maketrans('', '', string.punctuation)
-data_path = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/IMDB_Dataset_Small.csv'
-output_model_location = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/Sentiment_functions/models/bad_model.h5'
+data_path = '/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/data/IMDB_Dataset_Small.csv'
+output_model_location = '/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/Sentiment_functions/models/bad_model.h5'
 
 print("Loading embedder.......")
 # Embedder
-#embedder = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin',binary=True)
-#word_vectors = embedder.wv
+embedder = KeyedVectors.load_word2vec_format('/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/data/GoogleNews-vectors-negative300.bin',binary=True)
+word_vectors = embedder.wv
 
 print("Reading dataset........")
 dataset = pd.read_csv(data_path)   # 5k samples
@@ -47,7 +50,6 @@ test_x = test_x.to_numpy()
 test_y = test_y.to_numpy()
 
 
-
 print("Pre-processing.........")
 for i in range(0,len(train_x)):
     #print(train_x[i])
@@ -66,7 +68,7 @@ for i in range(0,len(train_x)):
     test_x[i] = [word for word in test_x[i] if word not in stopwords.words('english')]
 
 #print(batch_x[0])
-print("Mas")
+print("Mas - padding")
 input_length = 150
 for i in range(0,len(train_x)):
     diff = len(train_x[i]) - input_length
@@ -102,11 +104,16 @@ for i in range(0,len(train_y)):
     if test_y[i] == "positive":
         new_test_y[i] = 1
 
-
+# These next two lines don't do anything important – just managing
+# variable names for easier reading.
 train_y = new_train_y
 test_y = new_test_y
 
+tokenizer = Tokenizer(oov_token="<OOV>")
+tokenizer.fit_on_texts(train_x)
 
+# index_word = tokenizer.index_word  # dictionary with the indexes as the keys
+# sequences = tokenizer.texts_to_sequences(sentences)
 
 
 
