@@ -116,3 +116,6 @@ data/labels_imdb_3.npy
 data/labels_imdb_4.npy
 
 data/*
+playground.py
+
+*.pyc

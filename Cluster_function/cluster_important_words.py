@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from gensim.models import KeyedVectors
 from sklearn.decomposition import PCA
+from sklearn.decomposition import LatentDirichletAllocation as lda
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -15,10 +16,10 @@ additional_stop_words = ['said']
 
 # cutoff = 0.7 and vocab = 100 are a good trade-off
 TFID_cutoff = 0.7
-vocab_size = 100
+vocab_size = 200
 clustering_algo = 'kmeans'  # options are 'kmeans' & 'DBSCAN'
 
-# params for kmeans:
+# cluster used in both kmeans and LDA
 num_clusters = 5
 
 # 2,2 is pretty good
@@ -26,13 +27,17 @@ num_clusters = 5
 eps_value = 3
 minimum_samples = 3
 
+# number of words to be included for LDA
+num_LDA_words = 5
+
 # define a complete list of stopwords
 STOPWORDS = STOPWORDS | STOP_WORDS
 for word_elem in additional_stop_words:
     STOPWORDS.add(word_elem)
 
 
-def get_important_words(path_to_file, path_to_embeddings):
+
+def get_important_words(train_text, word_vectorizer):
     # Parameter Options:
     # the "input" parameter can also be "filename" or "file" if we want to
     # read from a file. @ the moment we pass in the raw words
@@ -43,9 +48,6 @@ def get_important_words(path_to_file, path_to_embeddings):
     vectorizer = TfidfVectorizer(input='content', stop_words=STOPWORDS, lowercase=True, encoding='UTF-8',
                                  strip_accents='unicode', analyzer='word', ngram_range=(1, 2), max_features=vocab_size)
 
-    # read in the sample data
-    train_text = pd.read_csv(path_to_file)
-    train_text = train_text['text']
 
     # feature_matrix will be sparse, use "feature_matrix.toarray()" to get an array representation
     # all values will have been normalized to be between 0 and 1
@@ -66,8 +68,10 @@ def get_important_words(path_to_file, path_to_embeddings):
     # by the end of this we get an array of all the important words from each document
 
     # load in a pre-trained word-embedding from google's word2vec
-    model = KeyedVectors.load_word2vec_format(path_to_embeddings,
-                                              binary=True)
+    #model = KeyedVectors.load_word2vec_format(path_to_embeddings,
+                                              #binary=True)
+
+    model = word_vectorizer
 
     # create a new feature matrix for each important from above
     # each row is an important word with its vector representation
@@ -121,73 +125,64 @@ def get_important_words(path_to_file, path_to_embeddings):
     return pd.DataFrame([imp_word_list, labels]).T, num_clusters
 
 
-def option_2(path_to_file):
+def lda_cluster(train_text):
     vectorizer = TfidfVectorizer(input='content', stop_words='english', lowercase=True, encoding='UTF-8',
                                  strip_accents='unicode', analyzer='word', ngram_range=(1, 2), max_features=100)
 
-    # read in the sample data
-    train_text = pd.read_csv(path_to_file)
-    labels = train_text['category']
-    train_text = train_text['text']
 
     # feature_matrix will be sparse, use "feature_matrix.toarray()" to get an array representation
     feature_matrix = vectorizer.fit_transform(train_text)
     corpus_vocab = vectorizer.get_feature_names()
     corpus_vocab = np.array(corpus_vocab)
 
-    # run k-means and cluster the documents
-    kmeans = KMeans(n_clusters=5, init='k-means++', random_state=0)
-    kmean_indices = kmeans.fit_predict(feature_matrix)
 
+    # now we want to get the most important words in each document
     feature_matrix = feature_matrix.toarray()
-    # Run PCA so we can actually visualize this in two dimensinos
-    pca = PCA(n_components=2)
-    scatter_plot_points = pca.fit_transform(feature_matrix)
 
-    colors = ["r", "b", "c", "y", "m"]
+    # Since values of feature_matrix are between zero and 1, we can say
+    # that for each document, only consider the word as part of the document
+    # if it is of particular importance:
+    feature_matrix = feature_matrix > TFID_cutoff
+    feature_matrix = feature_matrix.astype(int)
 
-    x_points = [o[0] for o in scatter_plot_points]
-    y_points = [o[1] for o in scatter_plot_points]
+    # now feature matrix is a matrix of 1 or 0 (bag of words)
+    # we use corpus_vocab to get the actual corresponding word
+    my_lda = lda(n_components=num_clusters, random_state=0)
 
-    color_points = [colors[d] for d in kmean_indices]
+    # run the LDA algorithm
+    my_lda.fit_transform(feature_matrix)
 
-    plt.scatter(x_points[:50], y_points[:50], c=color_points[:50])
+    # extract the associated probability for each word
+    word_topics = my_lda.components_ # will be of size (num_topics, num_words), each cell representing probability
 
-    for i, txt in enumerate(labels):
-        plt.annotate(txt, (x_points[i], y_points[i]))
-        if i > 30:
-            break
-    plt.show()
+    top_words_list = []
+    top_words_group = []
 
-    master_word_list = {}
+    # now that we have the top words, we want to see what the top words are in each category
+    for idx in range(num_clusters):
+        category = word_topics[idx][:]
 
-    # fig, ax = plt.subplots(nrows=5, ncols=1)
+        # sort the probabilities of the associated words by index
+        # the below will go from smallest to largest
+        sorted_words = np.argsort(category)
+        top_words = sorted_words[-1*num_LDA_words:]
 
-    for x in range(5):
-        top_words_list = []
-        docs = kmean_indices == x
-        docs = feature_matrix[docs, :]
+        print('###########')
+        print('For Category number {0}'.format(idx))
+        for word in top_words:
+            top_words_list.append(corpus_vocab[word])
+            top_words_group.append(idx)
+            print(corpus_vocab[word])
 
-        for doc in docs:
-            top_words = np.nonzero(doc)
-            top_words = corpus_vocab[top_words]
-            top_words_list = top_words_list + list(top_words)
+    imp_word_list = pd.DataFrame(list(zip(top_words_list, top_words_group)), columns=['word', 'group'])
+    return imp_word_list, num_clusters
 
-        counter_obj = Counter(top_words_list)
-        master_word_list[int(x)] = counter_obj.most_common(10)
-        r = master_word_list[x]
 
-        wordcloud = WordCloud(width=300, height=300,
-                              background_color='white',
-                              stopwords=STOPWORDS,
-                              min_font_size=10).generate(" ".join([word for word, x in r]))
-        plt.figure(figsize=(3, 3))
-        ax = plt.axes()
-        ax.imshow(wordcloud)
-        ax.axis("off")
 
-    # plot all the words in their respective categories
-    print('here')
+
+
+
+
 
 
 

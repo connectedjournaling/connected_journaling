@@ -1,14 +1,3 @@
-# INSTALL THESE
-
-# To upgrade pip:
-# pip install --upgrade pip
-# NEED THESE: 
-# pip install tensorflow
-# pip install tensorflow-datasets
-
-# Info on Tensorflow datasets: https://stackoverflow.com/questions/56820723/what-is-tensorflow-python-data-ops-dataset-ops-optionsdataset
-
-
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -46,7 +35,6 @@ def train_model(model, x_data, y_data, num_epochs):
     return history, model
 
 
-
 # Save model weights to file name
 def save_model(model, file_name):
     model.save_weights(file_name)
@@ -76,7 +64,7 @@ def convert_data_train(storage_location, pre_trained_location, size_embedding):
     print('Pre-processing data...')
     dataset = pd.read_csv(storage_location)
 
-    dataset = dataset[40000:][:] ## UNCOMMENT THIS LINE FOR REDUCING THE DATA SET
+    dataset = dataset[10:][:] ## UNCOMMENT THIS LINE FOR REDUCING THE DATA SET
 
     sentences = list(dataset.iloc[:, 0])
     labels = list(dataset.iloc[:, 1])
@@ -133,3 +121,17 @@ def convert_data_test(sentences, sequence_length, pre_trained_location, size_emb
 
         print('Index {0}'.format(observation))
     return embedded_data_tensor
+
+
+# needs to get passed in a sentence that is already vectorized
+def get_sentiment_with_index(sentences, model):
+    num_predictions = np.shape(sentences)[0]
+    predictions = np.zeros(num_predictions, 1)
+    idx_preds = np.arange(num_predictions)
+
+    for idx, sentence in enumerate(sentences):
+        prediction = model.predict(np.array(sentence[idx][:][:], ndmin=3))
+        predictions[idx] = prediction
+    
+    return idx_preds, predictions
+

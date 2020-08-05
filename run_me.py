@@ -25,6 +25,8 @@ imp_word_list, num_groups = cluster.get_important_words(storage_location, pre_tr
 # convert the data to be all sentences #
 sentences = help_fun.split_into_sentence(storage_location)
 
+
+
 ## GRAB THE SENTIMENT & CATEGORY FOR EACH WORD ##
 
 # load trained model #

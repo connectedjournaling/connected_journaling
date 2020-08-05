@@ -1,9 +1,3 @@
-# pip install pandas
-# pip install -U scikit-learn
-# pip install Keras
-# pip install --user -U nltk
-
-print("Importing..............")
 import pandas as pd
 import tensorflow as tf
 import numpy as np
@@ -16,19 +10,19 @@ from nltk.corpus import stopwords
 from gensim.models import KeyedVectors
 from keras.preprocessing.sequence import pad_sequences
 
-table = str.maketrans('', '', string.punctuation)
 
+## LOAD CONSTANTS HERE ##
+table = str.maketrans('', '', string.punctuation)
+data_path = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/IMDB_Dataset_Small.csv'
+output_model_location = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/Sentiment_functions/models/bad_model.h5'
 
 print("Loading embedder.......")
 # Embedder
-embedder = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin',binary=True)
-word_vectors = embedder.wv
+#embedder = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin',binary=True)
+#word_vectors = embedder.wv
 
 print("Reading dataset........")
-# dataset = pd.read_csv("IMDB_Dataset.csv")         # 50k samples
-dataset = pd.read_csv("IMDB_Dataset_Tiny.csv")   # 5k samples
-# dataset = pd.read_csv("IMDB_Dataset_Tiny.csv")    # 500 samples
-
+dataset = pd.read_csv(data_path)   # 5k samples
 
 print("Shuffling/ splitting...")
 # Shuffle, train/test split
@@ -79,7 +73,7 @@ for i in range(0,len(train_x)):
     #print("diff:",diff)
     if diff < 0:
         for j in range(0,np.abs(diff)):
-            train_x[i].append("a")
+            train_x[i].append("## ")
     elif diff > 0:
         train_x[i] = train_x[i][:input_length]
 
@@ -87,7 +81,7 @@ for i in range(0,len(train_x)):
     #print("diff:",diff)
     if diff < 0:
         for j in range(0,np.abs(diff)):
-            test_x[i].append("a")
+            test_x[i].append("## ")
     elif diff > 0:
         test_x[i] = test_x[i][:input_length]
 
@@ -117,13 +111,12 @@ test_y = new_test_y
 
 
 class My_Custom_Generator(keras.utils.Sequence) :
-
     def __init__(self, train_x, train_y, batch_size) :
         self.train_x = train_x
         self.train_y = train_y
         self.batch_size = batch_size
 
-    def __len__(self) :
+    def __len__(self):
         return (np.ceil(len(self.train_x) / float(self.batch_size))).astype(np.int)
 
     def __getitem__(self, idx) :
@@ -213,15 +206,7 @@ print("Evaluate on test data")
 result = model.evaluate(test_x, test_y)
 
 
-            
 
-
-
-
-# print("5")
-# print(batch_x[0][0].shape)
-# print("6")
-# print(batch_x[0][0])
 
 
 
