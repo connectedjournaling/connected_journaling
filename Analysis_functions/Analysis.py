@@ -57,4 +57,4 @@ class WeekAnalysis:
         self.imp_words = imp_word_list
         self.num_groups = num_groups
 
-    def get_sentiments(self):
+
