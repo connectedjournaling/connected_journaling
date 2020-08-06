@@ -1,7 +1,7 @@
 """
 
     Description: This script presents a class that extracts dependencies in a 
-    			 sentence.
+                 sentence.
     Inputs: Sentences
     Output: Dependencies
 """
@@ -13,53 +13,70 @@ from spacy.symbols import nsubj, VERB
 import en_core_web_md
 
 class DPR:
-	def __init__(self, model):
-		self.model = spacy.load(model)
+    def __init__(self, model):
+        self.model = spacy.load(model)
+
+    ## Noun-Chunks: Are nouns and words that describe them in the text
+    ##              Essentially returns subjects and objects of text. 
+    def get_noun_chunks(self, sentence):
+        result = []
+
+        doc = self.model(sentence)
+
+        for chunk in doc.noun_chunks:
+            result.append((chunk.root.text, chunk.root.dep_,
+                    chunk.root.head.text))
+        return result
 
 
-	# Relation: Relationship between subject and objecs
-	def get_relation(self, sentence):
-		doc = self.model(sentence)
+    ## Verbs: Action-words in sentences
+    def get_verb(self, sentence):
+        verbs = set()
+        doc = self.model(sentence)
 
-		# Matcher class object 
-		matcher = Matcher(self.model.vocab)
+        for possible_subject in doc:
+            if possible_subject.dep == nsubj and possible_subject.head.pos == VERB:
+                verbs.add(possible_subject.head)
+        if len(verbs) == 0: 
+            #print ("Could not find a verb.")
+            return
+        return verbs
 
-		#define the pattern 
-		pattern = [{'DEP':'ROOT'}, 
-				{'DEP':'prep','OP':"?"},
-				{'DEP':'agent','OP':"?"},  
-				{'POS':'ADJ','OP':"?"}] 
+    ## Returns all noun-chunks (subject and object) and verbs, in a dictionary. 
+    def get_all(self, sentence):
+        result = {}
+        subj = []
+        obj = []
 
-		matcher.add("matching_1", None, pattern) 
-		matches = matcher(doc)
-		k = len(matches) - 1
-		span = doc[matches[k][1]:matches[k][2]] 
+        for ele in self.get_noun_chunks(sentence):
+            if ele[1][1:] == 'subj': #Grabbing Subject
+                subj.append(ele[0])
+            if ele[1][1:] == 'obj': #Grabbing Object
+                obj.append(ele[0])
 
-		return(span.text)
-
-
-	## Noun-Chunks: Are nouns and words that describe them in the text
-	##				Essentially returns subjects and objects of text. 
-	def get_noun_chunks(self, sentence):
-		result = []
-		doc = self.model(sentence)
-
-		for chunk in doc.noun_chunks:
-		    result.append((chunk.root.text, chunk.root.dep_,
-		            chunk.root.head.text))
-		return result
+        verbs = self.get_verb(sentence)
 
 
-	## Verbs: Action-words in sentences
-	def get_verbs(self, sentence):
-		verbs = set()
-		doc = self.model(sentence)
+        result['Verbs'] = list(verbs)
+        result['Subjects'] = subj
+        result['Objects'] = obj 
 
-		for possible_subject in doc:
-		    if possible_subject.dep == nsubj and possible_subject.head.pos == VERB:
-		        verbs.add(possible_subject.head)
-		if len(verbs) == 0: 
-			print ("Could not find a verb.")
-			return
-		return verbs
+        return result
+
+
+    """              Additional DPR ABILITY              """
+    ### Returns pronouns as PERSON entities in sentences
+    def pro_evaluate(self, sentence):
+        None
+
+    def pro_linking(self, sentence):
+        None
+        #d = gender.Detector()
+        #print (d.get_gender("Sally"))
+
+    """             Auxilliary functions                """
+    ### Extractes sentences from a block of text, sentences serparated by a full
+    ### stop. 
+    def extract_sentences(self, paragraph): 
+        return paragraph.split('.')
 
