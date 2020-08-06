@@ -26,6 +26,8 @@
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
 
+.idea/connected_journaling.iml
+
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
@@ -117,5 +119,6 @@ data/labels_imdb_4.npy
 
 data/*
 playground.py
+.DS_store
 
 *.pyc
