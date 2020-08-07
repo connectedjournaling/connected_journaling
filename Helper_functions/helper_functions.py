@@ -7,7 +7,9 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from nltk.corpus import stopwords
 from pathlib import Path
+
 table = str.maketrans('', '', string.punctuation)
+
 
 def shuff_split(dataset):
     print("Shuffling/ splitting...")
@@ -31,6 +33,7 @@ def shuff_split(dataset):
     # Returns numpy arrays
     return train_x, train_y, test_x, test_y
 
+
 def remove_br(input):
     for i in range(0, len(input)):
         input[i] = input[i].replace('<br />', '')
@@ -48,7 +51,7 @@ def just_words(input):
 
 def convert_y(input):
     print("Y stuff")
-    new_input= np.zeros(len(input))
+    new_input = np.zeros(len(input))
 
     for i in range(0, len(input)):
         if input[i] == "positive":
@@ -74,6 +77,12 @@ def pre_processing(dataset):
     test_y = convert_y(test_y)
 
     return train_x, train_y, test_x, test_y
+
+
+def prepare_new_predictions(sentences):
+    sentences = remove_br(sentences)
+    sentences = just_words(sentences)
+    return sentences
 
 
 def split_into_sentence(documents):

@@ -4,18 +4,11 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from gensim.models import KeyedVectors
 import numpy as np
 import random
 import keras
-
-import helper_functions as hf
-
-
-## Define Constants here:
-BATCH_SIZE = 64
-storage_location_path = Path(
-    'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/IMDB_Dataset.csv')  # train data
+import random
+import Helper_functions.helper_functions as help_fun
 
 
 class sentiment_classifier:
@@ -24,41 +17,58 @@ class sentiment_classifier:
         self.seq_length = seq_length
         self.size_embedding = size_embedding
         self.embedder = embedder
+        self.index_word = []
+        self.history = []
+        self.train_x = []
+        self.train_y = []
+        self.test_x = []
+        self.test_y = []
 
         try:
             self.model = self.load_model(file_name, seq_length, size_embedding)
         except:
             self.model = self.build_model(seq_length, size_embedding)
 
-
-
-
-
     # Build model to the specs
     def build_model(self, sequence_length, size_embedding):
         # what we want is for the output of the embedding to b
-        model = tf.keras.Sequential([
+        self.model = tf.keras.Sequential([
             tf.keras.layers.InputLayer(input_shape=(sequence_length, size_embedding)),
             tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(size_embedding)),
             tf.keras.layers.Dense(64, activation='relu'),
             tf.keras.layers.Dense(1, activation='sigmoid')
         ])
 
-        model.summary()
-        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        return model
-
+        self.model.summary()
+        self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        return self.model
 
     # Train model with training data
-    def train_model(self, model, x_data, y_data, num_epochs):
-        history = model.fit(x_data, y_data, epochs=num_epochs, validation_split=0.2, verbose=True)
-        return history, model
+    def train_model(self, num_epochs, batch_size):
+        my_training_batch_generator = My_Custom_Generator(self.train_x, self.train_y, batch_size, self.embedder,
+                                                          self.index_word,
+                                                          self.size_embedding)
 
+        my_validation_batch_generator = My_Custom_Generator(self.test_x, self.test_y, batch_size, self.embedder,
+                                                            self.index_word,
+                                                            self.size_embedding)
+
+        num_train_samples = len(self.train_x)
+        num_valid_samples = len(self.test_x)
+
+        self.history = self.model.fit_generator(generator=my_training_batch_generator,
+                                                steps_per_epoch=int(num_train_samples // batch_size),
+                                                epochs=num_epochs,
+                                                verbose=True,
+                                                validation_data=my_validation_batch_generator,
+                                                validation_steps=int(num_valid_samples // batch_size))
+
+    def evaluate_model(self):
+        print(self.model.evaluate(self.test_x, self.test_y))
 
     # Save model weights to file name
-    def save_model(self, model, file_name):
-        model.save_weights(file_name)
-
+    def save_model(self, file_name):
+        self.model.save_weights(file_name)
 
     # Load model from saved weights
     def load_model(self, file_name, sequence_length, size_embedding):
@@ -66,94 +76,112 @@ class sentiment_classifier:
         model.load_weights(file_name)
         return model
 
-
-
     # Plot graphs to show how loss/ accuracy changed over time
-    def plot_graphs(self, history, string):
-        plt.plot(history.history[string])
+    def plot_graphs(self, string):
+        plt.plot(self.history.history[string])
         # plt.plot(history.history['val_'+string])
         plt.xlabel("Epochs")
         plt.ylabel(string)
         # plt.legend([string, 'val_'+string])
         plt.show()
 
-    # gets passed in a .CSV file for training
-    # gets passed in list of sentences for test
-    def convert_data_train(self, storage_location, pre_trained_location, size_embedding):
-        print('Pre-processing data...')
-        dataset = pd.read_csv(storage_location)
+    # needs to take in a Pandas DataFrame
+    def pre_process_data(self, dataset):
+        self.train_x, self.train_y, self.test_x, self.test_y = help_fun.pre_processing(dataset)
 
-        dataset = dataset[10:][:] ## UNCOMMENT THIS LINE FOR REDUCING THE DATA SET
-
-        train_x, train_y, test_x, test_y = hf.pre_processing(dataset)
-
-        # sentences = list(dataset.iloc[:, 0])
-        # labels = list(dataset.iloc[:, 1])
-
-
+    def convert_data_pad_sequences(self):
         tokenizer = Tokenizer(oov_token="<OOV>")
-        tokenizer.fit_on_texts(sentences)
+        tokenizer.fit_on_texts(self.train_x)
+        self.index_word = tokenizer.index_word
+        train_sequences = tokenizer.texts_to_sequences(self.train_x)
+        train_padded_sentences = pad_sequences(train_sequences,
+                                               padding='post', maxlen=self.seq_length)
 
-        index_word = tokenizer.index_word  # dictionary with the indexes as the keys
-        sequences = tokenizer.texts_to_sequences(sentences)
-        padded_sentences = pad_sequences(sequences,
-                                         padding='post')  # numeric array of sequences that map on to actual word indices
+        test_sequences = tokenizer.texts_to_sequences(self.test_x)
+        test_padded_sentences = pad_sequences(test_sequences,
+                                              padding='post', maxlen=self.seq_length)
 
-        print('Loading Pre-Trained...')
-        word_vectors = KeyedVectors.load_word2vec_format(pre_trained_location,
-                                                         binary=True)
-        embedded_data_tensor = np.zeros((len(padded_sentences), len(padded_sentences[0]), size_embedding))
-        for observation, sentence in enumerate(padded_sentences):
-            for time_step, word in enumerate(sentence):
-                try:
-                    word_vector = word_vectors[index_word[word]]
-                    embedded_data_tensor[observation][time_step][:] = word_vector
-                except:
-                    # word is either zero or not included in the pre-trained embedding dimension
-                    embedded_data_tensor[observation][time_step][:] = np.zeros((1, size_embedding))
-
-            print('Index {0}'.format(observation))
-        return embedded_data_tensor, labels
-
-
-    def convert_data_test(self, sentences, sequence_length, pre_trained_location, size_embedding):
-        ## eliminate half of the dataset for memory purposes:
-        sentences = sentences[:100]
-
-        tokenizer = Tokenizer(oov_token="<OOV>")
-        tokenizer.fit_on_texts(sentences)
-
-        index_word = tokenizer.index_word  # dictionary with the indexes as the keys
-        sequences = tokenizer.texts_to_sequences(sentences)
-        padded_sentences = pad_sequences(sequences,
-                                         padding='post', maxlen=sequence_length)
-
-        print('Loading Pre-Trained...')
-        word_vectors = KeyedVectors.load_word2vec_format(pre_trained_location,
-                                                         binary=True)
-
-        embedded_data_tensor = np.zeros((len(padded_sentences), len(padded_sentences[0]), size_embedding))
-        for observation, sentence in enumerate(padded_sentences):
-            for time_step, word in enumerate(sentence):
-                try:
-                    word_vector = word_vectors[index_word[word]]
-                    embedded_data_tensor[observation][time_step][:] = word_vector
-                except:
-                    # word is either zero or not included in the pre-trained embedding dimension
-                    embedded_data_tensor[observation][time_step][:] = np.zeros((1, size_embedding))
-
-            print('Index {0}'.format(observation))
-        return embedded_data_tensor
+        self.train_x = train_padded_sentences
+        self.test_x = test_padded_sentences
 
     # needs to get passed in a sentence that is already vectorized
-    def get_sentiment_with_index(self, sentences, model):
+    def get_sentiment_with_index(self, sentences):
         num_predictions = np.shape(sentences)[0]
-        predictions = np.zeros(num_predictions, 1)
+        predictions = np.zeros((num_predictions, 1))
         idx_preds = np.arange(num_predictions)
 
         for idx, sentence in enumerate(sentences):
-            prediction = model.predict(np.array(sentence[idx][:][:], ndmin=3))
+            prediction = self.model.predict(np.expand_dims(sentence, axis=0))
             predictions[idx] = prediction
 
         return idx_preds, predictions
 
+    def prepare_test_data(self):
+        new_test_x = np.zeros((len(self.test_x), len(self.test_x[0]), self.size_embedding))
+        for i in range(0, len(self.test_x)):
+            num_words = len(self.test_x[i])
+            for j in range(0, num_words):
+                word = self.test_x[i][j]
+                try:
+                    word = self.index_word[word]
+                    new_test_x[i][j] = self.embedder[word]
+                except:
+                    new_test_x[i][j] = self.embedder.wv[random.choice(self.embedder.wv.index2entity)]
+        self.test_x = new_test_x
+
+
+    def get_new_predictions(self, sentences):
+        sentences = help_fun.prepare_new_predictions(sentences)
+        tokenizer = Tokenizer(oov_token="<OOV>")
+        tokenizer.fit_on_texts(sentences)
+        index_word = tokenizer.index_word
+        new_sequences = tokenizer.texts_to_sequences(sentences)
+        new_padded_sentences = pad_sequences(new_sequences,
+                                             padding='post', maxlen=self.seq_length)
+
+        new_sentences = np.zeros((len(new_padded_sentences), len(new_padded_sentences[0]), self.size_embedding))
+        for i in range(0, len(new_padded_sentences)):
+            num_words = len(new_padded_sentences[i])
+            for j in range(0, num_words):
+                word = new_padded_sentences[i][j]
+                try:
+                    word = index_word[word]
+                    new_sentences[i][j] = self.embedder[word]
+                except:
+                    new_sentences[i][j] = self.embedder.wv[random.choice(self.embedder.wv.index2entity)]
+
+        return self.get_sentiment_with_index(new_sentences)
+
+class My_Custom_Generator(keras.utils.Sequence):
+    def __init__(self, train_x, train_y, batch_size, embedder, word_index, embedding_size):
+        self.train_x = train_x
+        self.train_y = train_y
+        self.batch_size = batch_size
+        self.embedder = embedder
+        self.word_index = word_index
+        self.embedding_size = embedding_size
+
+    def __len__(self):
+        return (np.ceil(len(self.train_x) / float(self.batch_size))).astype(np.int)
+
+    def __getitem__(self, idx):
+        word_vectors = self.embedder.wv
+        batch_x = self.train_x[idx * self.batch_size: (idx + 1) * self.batch_size]
+        batch_y = self.train_y[idx * self.batch_size: (idx + 1) * self.batch_size]
+
+        new_batch_x = np.zeros((len(batch_x), len(batch_x[0]), self.embedding_size))
+
+        for i in range(0, len(batch_x)):
+            num_words = len(batch_x[i])
+            for j in range(0, num_words):
+                word = batch_x[i][j]
+                try:
+                    word = self.word_index[word]
+                    new_batch_x[i][j] = self.embedder[word]
+
+                except:
+                    new_batch_x[i][j] = self.embedder.wv[random.choice(self.embedder.wv.index2entity)]
+
+        batch_x = new_batch_x
+
+        return batch_x, batch_y

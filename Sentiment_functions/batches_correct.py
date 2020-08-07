@@ -14,10 +14,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
 
-## LOAD CONSTANTS HERE ##
-table = str.maketrans('', '', string.punctuation)
-data_path = '/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/data/IMDB_Dataset_Small.csv'
-output_model_location = '/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/Sentiment_functions/models/bad_model.h5'
+
 
 print("Loading embedder.......")
 # Embedder
@@ -27,71 +24,9 @@ word_vectors = embedder.wv
 print("Reading dataset........")
 dataset = pd.read_csv(data_path)   # 5k samples
 
-print("Shuffling/ splitting...")
-# Shuffle, train/test split
-shuffled_dataset = shuffle(dataset)
-train_dataset, test_dataset = train_test_split(
-    shuffled_dataset, test_size=0.5, random_state=1)
 
 
-print("Dividing...............")
-# Divide up x and y
-#print(train_dataset[0:10])
-train_x = train_dataset.iloc[:,0]
-train_y = train_dataset.iloc[:,1]
-test_x = test_dataset.iloc[:,0]
-test_y = test_dataset.iloc[:,1]
-#print(train_x[0:10])
 
-
-train_x = train_x.to_numpy()
-train_y = train_y.to_numpy()
-test_x = test_x.to_numpy()
-test_y = test_y.to_numpy()
-
-
-print("Pre-processing.........")
-for i in range(0,len(train_x)):
-    #print(train_x[i])
-    train_x[i] = train_x[i].replace('<br />', '')
-    test_x[i] = test_x[i].replace('<br />', '')
-
-for i in range(0,len(train_x)):
-    train_x[i] = train_x[i].split()
-    train_x[i] = [word.translate(table) for word in train_x[i]]
-    train_x[i] = [word.lower() for word in train_x[i]]
-    train_x[i] = [word for word in train_x[i] if word not in stopwords.words('english')]
-
-    test_x[i] = test_x[i].split()
-    test_x[i] = [word.translate(table) for word in test_x[i]]
-    test_x[i] = [word.lower() for word in test_x[i]]
-    test_x[i] = [word for word in test_x[i] if word not in stopwords.words('english')]
-
-#print(batch_x[0])
-print("Mas - padding")
-input_length = 150
-for i in range(0,len(train_x)):
-    diff = len(train_x[i]) - input_length
-    #print("diff:",diff)
-    if diff < 0:
-        for j in range(0,np.abs(diff)):
-            train_x[i].append("## ")
-    elif diff > 0:
-        train_x[i] = train_x[i][:input_length]
-
-    diff = len(test_x[i]) - input_length
-    #print("diff:",diff)
-    if diff < 0:
-        for j in range(0,np.abs(diff)):
-            test_x[i].append("## ")
-    elif diff > 0:
-        test_x[i] = test_x[i][:input_length]
-
-
-# batch_x_pad = pad_sequences(
-#     sequences=batch_x,
-#     maxlen=input_length,
-#     padding='post')
 
 
 print("Y stuff")

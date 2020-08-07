@@ -1,33 +1,39 @@
 ### COPY TO GOOGLE COLLAB FOR LARGER DATASETS OF TRAINING
 from pathlib import Path
-import numpy as np
-import sentiment_classifier as sc
+import Sentiment_functions.sentiment_classifier as sc
+import pandas as pd
+from gensim.models import KeyedVectors
 
 
-## CONSTANTS
-embedded_data_location = Path('C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/imdb_1.npy')
-label_data_location = Path('C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/labels_imdb_1.npy')
-output_model_location = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/Sentiment_functions/models/bad_model.h5'
+## CONSTANTS ##
+storage_location = Path("C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/IMDB_Dataset.csv")
+pre_trained_embeddings_path = Path('C:/Users/hsuen/Desktop/bigData/GoogleNews-vectors-negative300.bin')
+sentiment_network_path = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/Sentiment_functions/models/good_model.h5'
+
+
+print('loading in word vectors')
+word_vectors = KeyedVectors.load_word2vec_format(pre_trained_embeddings_path,
+                                                         binary=True)
 
 embedding_size_constant = 300
-epoch_constant = 1
+sequence_length = 150
+num_epochs = 60
+batch_size = 32
+
+## Train Model ##
+model = sc.sentiment_classifier(sentiment_network_path, sequence_length, embedding_size_constant, word_vectors)
+
+dataset = pd.read_csv(storage_location)
+
+model.pre_process_data(dataset)
+model.convert_data_pad_sequences()
+model.train_model(num_epochs, batch_size)
+model.prepare_test_data()
+model.evaluate_model()
+
+model.save_model(sentiment_network_path)
 
 
-print('loading data...')
-train_data = np.load(embedded_data_location)
-labels = np.load(label_data_location)
-
-print('building model...')
-model = sc.build_model(sequence_length=np.shape(train_data)[1], size_embedding=embedding_size_constant)
-print('TRAINING MODEL...')
-history, model = sc.train_model(model, train_data[:10], labels[:10], num_epochs=epoch_constant)
-print('Plot training graphs...')
-# plot_graphs(history, 'accuracy')
-# plot_graphs(history, 'loss')
-
-# this is an example prediction, it needs to have the minimum number of dimensinos be 3
-result = model.predict(np.array(train_data[1][:][:], ndmin=3))
-
-sc.save_model(model, output_model_location)
-
-
+######
+#model.load_model(sentiment_network_path, sequence_length, embedding_size_constant)
+#idx, preds = model.get_new_predictions(['FUCK you', 'i love this'])

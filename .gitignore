@@ -122,3 +122,5 @@ playground.py
 .DS_store
 
 *.pyc
+
+__pycache__

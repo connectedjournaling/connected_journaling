@@ -1,6 +1,8 @@
 import cluster_important_words as cluster
 import sentiment_classifier as sentiment
 import helper_functions as help_fun
+import NER_functions as NER
+import DPR_functions as DPR
 from gensim.models import KeyedVectors
 import pandas as pd
 
@@ -57,4 +59,4 @@ class WeekAnalysis:
         self.imp_words = imp_word_list
         self.num_groups = num_groups
 
-
+    def load_model(self, file_path):
