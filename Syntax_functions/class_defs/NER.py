@@ -18,8 +18,9 @@ import en_core_web_md
 
 
 class NER:
-    def __init__(self):
+    def __init__(self, model):
         self.TRAIN_DATA = []
+        self.model = spacy.load(model)
 
 
     """                         DATA PREPROCESSING                           """
@@ -202,23 +203,11 @@ class NER:
     #       Input: model - Existing NER model (string)
     #       sentences - Sentences to test NER model on
     #       Output: NER results of sentences
-    def evaluate(self, sentence, model=None):
-        if model == None:
-            print ("Please supply an NER model.")
-            return
+    def evaluate(self, sentence):
         if len(sentence) == 0:
             print ("Please provide more than 0 sentences.")
             return
 
-        model = spacy.load(model)
-        doc = model(sentence)
+        doc = self.model(sentence)
         
         return [(ent.text, ent.label_) for ent in doc.ents]
-
-
-    
-
-
-
-
-           

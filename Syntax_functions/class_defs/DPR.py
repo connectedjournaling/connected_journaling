@@ -5,12 +5,13 @@
     Inputs: Sentences
     Output: Dependencies
 """
-import spacy 
-from spacy.matcher import Matcher 
-from spacy.tokens import Span 
+import spacy
+from spacy.matcher import Matcher
+from spacy.tokens import Span
 from spacy.symbols import nsubj, VERB
 
 import en_core_web_md
+
 
 class DPR:
     def __init__(self, model):
@@ -25,9 +26,8 @@ class DPR:
 
         for chunk in doc.noun_chunks:
             result.append((chunk.root.text, chunk.root.dep_,
-                    chunk.root.head.text))
+                           chunk.root.head.text))
         return result
-
 
     ## Verbs: Action-words in sentences
     def get_verb(self, sentence):
@@ -37,8 +37,8 @@ class DPR:
         for possible_subject in doc:
             if possible_subject.dep == nsubj and possible_subject.head.pos == VERB:
                 verbs.add(possible_subject.head)
-        if len(verbs) == 0: 
-            #print ("Could not find a verb.")
+        if len(verbs) == 0:
+            # print ("Could not find a verb.")
             return
         return verbs
 
@@ -49,34 +49,36 @@ class DPR:
         obj = []
 
         for ele in self.get_noun_chunks(sentence):
-            if ele[1][1:] == 'subj': #Grabbing Subject
+            if ele[1][1:] == 'subj':  # Grabbing Subject
                 subj.append(ele[0])
-            if ele[1][1:] == 'obj': #Grabbing Object
+            if ele[1][1:] == 'obj':  # Grabbing Object
                 obj.append(ele[0])
 
         verbs = self.get_verb(sentence)
 
-
-        result['Verbs'] = list(verbs)
+        if verbs is not None:
+            result['Verbs'] = list(verbs)
+        else:
+            result['Verbs'] = []
         result['Subjects'] = subj
-        result['Objects'] = obj 
+        result['Objects'] = obj
 
         return result
 
-
     """              Additional DPR ABILITY              """
+
     ### Returns pronouns as PERSON entities in sentences
     def pro_evaluate(self, sentence):
         None
 
     def pro_linking(self, sentence):
         None
-        #d = gender.Detector()
-        #print (d.get_gender("Sally"))
+        # d = gender.Detector()
+        # print (d.get_gender("Sally"))
 
     """             Auxilliary functions                """
-    ### Extractes sentences from a block of text, sentences serparated by a full
-    ### stop. 
-    def extract_sentences(self, paragraph): 
-        return paragraph.split('.')
 
+    ### Extracts sentences from a block of text, sentences serparated by a full
+    ### stop. 
+    def extract_sentences(self, paragraph):
+        return paragraph.split('.')

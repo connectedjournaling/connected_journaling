@@ -76,6 +76,7 @@ class sentiment_classifier:
         model.load_weights(file_name)
         return model
 
+
     # Plot graphs to show how loss/ accuracy changed over time
     def plot_graphs(self, string):
         plt.plot(self.history.history[string])
@@ -112,7 +113,7 @@ class sentiment_classifier:
 
         for idx, sentence in enumerate(sentences):
             prediction = self.model.predict(np.expand_dims(sentence, axis=0))
-            predictions[idx] = prediction
+            predictions[idx] = prediction[0][0]
 
         return idx_preds, predictions
 
@@ -129,7 +130,6 @@ class sentiment_classifier:
                     new_test_x[i][j] = self.embedder.wv[random.choice(self.embedder.wv.index2entity)]
         self.test_x = new_test_x
 
-
     def get_new_predictions(self, sentences):
         sentences = help_fun.prepare_new_predictions(sentences)
         tokenizer = Tokenizer(oov_token="<OOV>")
@@ -139,6 +139,7 @@ class sentiment_classifier:
         new_padded_sentences = pad_sequences(new_sequences,
                                              padding='post', maxlen=self.seq_length)
 
+        print('Vectorizing New Sentences')
         new_sentences = np.zeros((len(new_padded_sentences), len(new_padded_sentences[0]), self.size_embedding))
         for i in range(0, len(new_padded_sentences)):
             num_words = len(new_padded_sentences[i])
@@ -151,6 +152,7 @@ class sentiment_classifier:
                     new_sentences[i][j] = self.embedder.wv[random.choice(self.embedder.wv.index2entity)]
 
         return self.get_sentiment_with_index(new_sentences)
+
 
 class My_Custom_Generator(keras.utils.Sequence):
     def __init__(self, train_x, train_y, batch_size, embedder, word_index, embedding_size):
