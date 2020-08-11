@@ -7,6 +7,7 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from nltk.corpus import stopwords
 from pathlib import Path
+import copy
 
 table = str.maketrans('', '', string.punctuation)
 
@@ -34,19 +35,21 @@ def shuff_split(dataset):
     return train_x, train_y, test_x, test_y
 
 
-def remove_br(input):
-    for i in range(0, len(input)):
-        input[i] = input[i].replace('<br />', '')
-    return input
+def remove_br(sentences):
+    new_sentences = copy.deepcopy(sentences)
+    for i in range(0, len(new_sentences)):
+        new_sentences[i] = new_sentences[i].replace('<br />', '')
+    return new_sentences
 
 
-def just_words(input):
-    for i in range(0, len(input)):
-        input[i] = input[i].split()
-        input[i] = [word.translate(table) for word in input[i]]
-        input[i] = [word.lower() for word in input[i]]
-        input[i] = [word for word in input[i] if word not in stopwords.words('english')]
-    return input
+def just_words(sentences):
+    new_sentences = copy.deepcopy(sentences)
+    for i in range(0, len(new_sentences)):
+        new_sentences[i] = new_sentences[i].split()
+        new_sentences[i] = [word.translate(table) for word in new_sentences[i]]
+        new_sentences[i] = [word.lower() for word in new_sentences[i]]
+        new_sentences[i] = [word for word in new_sentences[i] if word not in stopwords.words('english')]
+    return new_sentences
 
 
 def convert_y(input):
@@ -80,9 +83,9 @@ def pre_processing(dataset):
 
 
 def prepare_new_predictions(sentences):
-    sentences = remove_br(sentences)
-    sentences = just_words(sentences)
-    return sentences
+    new_sentences = remove_br(sentences)
+    new_sentences = just_words(new_sentences)
+    return new_sentences
 
 
 def split_into_sentence(documents):

@@ -10,6 +10,8 @@ import keras
 import random
 import Helper_functions.helper_functions as help_fun
 
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 
 class sentiment_classifier:
     def __init__(self, file_name, seq_length, size_embedding, embedder):
@@ -107,6 +109,7 @@ class sentiment_classifier:
 
     # needs to get passed in a sentence that is already vectorized
     def get_sentiment_with_index(self, sentences):
+        print('Done Vectorizing, getting predictions')
         num_predictions = np.shape(sentences)[0]
         predictions = np.zeros((num_predictions, 1))
         idx_preds = np.arange(num_predictions)
@@ -115,6 +118,7 @@ class sentiment_classifier:
             prediction = self.model.predict(np.expand_dims(sentence, axis=0))
             predictions[idx] = prediction[0][0]
 
+        print('Finished getting sentiments')
         return idx_preds, predictions
 
     def prepare_test_data(self):
@@ -131,11 +135,11 @@ class sentiment_classifier:
         self.test_x = new_test_x
 
     def get_new_predictions(self, sentences):
-        sentences = help_fun.prepare_new_predictions(sentences)
+        new_sentences = help_fun.prepare_new_predictions(sentences)
         tokenizer = Tokenizer(oov_token="<OOV>")
-        tokenizer.fit_on_texts(sentences)
+        tokenizer.fit_on_texts(new_sentences)
         index_word = tokenizer.index_word
-        new_sequences = tokenizer.texts_to_sequences(sentences)
+        new_sequences = tokenizer.texts_to_sequences(new_sentences)
         new_padded_sentences = pad_sequences(new_sequences,
                                              padding='post', maxlen=self.seq_length)
 

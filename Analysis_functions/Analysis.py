@@ -47,6 +47,7 @@ class WeekAnalysis:
 
         print('CONVERTING DATA INTO SENTENCES')
         self.sentences = help_fun.split_into_sentence(self.data_path)
+        self.sentences_for_sentiment = []
         self.num_sentences = len(self.sentences)
 
         print('LOADING THE VECTORIZER')
@@ -77,7 +78,7 @@ class WeekAnalysis:
                         self.entities[entity[0]].append(idx)
 
     def get_all_sentiments(self):
-        print('Looping through all sentences to grab sentiments')
+        print('Starting Sentiment Analysis')
         idx_preds, predictions = self.sentiment_model.get_new_predictions(self.sentences)
         self.sentiments = predictions
 
@@ -92,3 +93,11 @@ class WeekAnalysis:
             sentence_parts = self.dpr_model.get_all(sentence)
             noun_objs = sentence_parts['Subjects']
             self.noun_subjects.append(noun_objs)
+
+    def get_top_sentences(self, threshold):
+        if len(self.sentiments) == 0:
+            print('Have not extracted Sentiments')
+            return -1
+
+        top_sentences = self.sentiments > threshold
+        return 0
