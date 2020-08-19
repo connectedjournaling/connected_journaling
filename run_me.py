@@ -1,19 +1,23 @@
-import cluster_important_words as cluster
-import sentiment_classifier as sentiment
+import Cluster_function.cluster_important_words as cluster
+import Sentiment_functions.sentiment_classifier as sentiment
 from pathlib import Path
-import helper_functions as help_fun
+import Helper_functions.helper_functions as help_fun
 import numpy as np
-from NER import NER
+#from NER import NER
 import re
 
 ## CONSTANTS ##
-storage_location = Path("C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/bbc-text.csv")
-pre_trained_embeddings_path = Path('C:/Users/hsuen/Desktop/bigData/GoogleNews-vectors-negative300.bin')
-sentiment_network_path = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/Sentiment_functions/models/bad_model.h5'
+# storage_location = Path("C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/data/bbc-text.csv")
+storage_location = Path("/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/data/IMDB_Dataset_Tiny.csv")
+
+#pre_trained_embeddings_path = Path('C:/Users/hsuen/Desktop/bigData/GoogleNews-vectors-negative300.bin')
+pre_trained_embeddings_path = Path("/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/data/GoogleNews-vectors-negative300.bin")
+
+# sentiment_network_path = 'C:/Users/hsuen/Desktop/connected_journaling/connected_journaling/Sentiment_functions/models/bad_model.h5'
+sentiment_network_path = '/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/Sentiment_functions/models/bad_model.h5'
 
 embedding_size_constant = 300
 sequence_length = 1850
-
 
 
 

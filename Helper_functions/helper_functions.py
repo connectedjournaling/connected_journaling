@@ -2,6 +2,7 @@ import nltk
 import pandas as pd
 
 import numpy as np
+import re
 import string
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
@@ -34,11 +35,13 @@ def shuff_split(dataset):
     # Returns numpy arrays
     return train_x, train_y, test_x, test_y
 
-
-def remove_br(sentences):
+# Removes all HTML (things contained between '<' and '>') from text using RegEx
+def remove_html(sentences):
     new_sentences = copy.deepcopy(sentences)
+    clean_r = re.compile('<.*?>')
+
     for i in range(0, len(new_sentences)):
-        new_sentences[i] = new_sentences[i].replace('<br />', '')
+        new_sentences[i] = re.sub(clean_r, '', new_sentences[i])
     return new_sentences
 
 
@@ -70,8 +73,9 @@ def pre_processing(dataset):
     # 'positive' or 'negative'.
     train_x, train_y, test_x, test_y = shuff_split(dataset)
 
-    train_x = remove_br(train_x)
-    test_x = remove_br(test_x)
+
+    train_x = remove_html(train_x)
+    test_x = remove_html(test_x)
 
     train_x = just_words(train_x)
     test_x = just_words(test_x)
@@ -83,7 +87,7 @@ def pre_processing(dataset):
 
 
 def prepare_new_predictions(sentences):
-    new_sentences = remove_br(sentences)
+    new_sentences = remove_html(sentences)
     new_sentences = just_words(new_sentences)
     return new_sentences
 

@@ -8,10 +8,20 @@ import numpy as np
 import random
 import keras
 import random
+
+# import sys
+# # This is the only way as far as I can tell to import a file from a different directory
+# sys.path.insert(1, "/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/Helper_functions")
+# import helper_functions as help_fun
+
 import Helper_functions.helper_functions as help_fun
 
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+from keras.models import Sequential
+from keras.layers import Dense, LSTM, Dropout, Bidirectional
+from keras.layers.embeddings import Embedding
+
+#physical_devices = tf.config.list_physical_devices('GPU')
+#tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 
 class sentiment_classifier:
     def __init__(self, file_name, seq_length, size_embedding, embedder):
@@ -26,18 +36,30 @@ class sentiment_classifier:
         self.test_x = []
         self.test_y = []
 
-        try:
-            self.model = self.load_model(file_name, seq_length, size_embedding)
-        except:
-            self.model = self.build_model(seq_length, size_embedding)
+        # try:
+        #     print("Loading model from file_name")
+        #     self.model = self.load_model(file_name, seq_length, size_embedding)
+        # except:
+        #     print("Building new model")
+        #     self.model = self.build_model(seq_length, size_embedding)
+
+        print("Building new model")
+        self.model = self.build_model(seq_length, size_embedding)
 
     # Build model to the specs
     def build_model(self, sequence_length, size_embedding):
         # what we want is for the output of the embedding to b
         self.model = tf.keras.Sequential([
             tf.keras.layers.InputLayer(input_shape=(sequence_length, size_embedding)),
-            tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(size_embedding)),
-            tf.keras.layers.Dense(64, activation='relu'),
+
+            # tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(size_embedding)),
+            # tf.keras.layers.Dense(64, activation='relu'),
+            # tf.keras.layers.Dense(1, activation='sigmoid')
+
+            tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(size_embedding, recurrent_dropout=0.1)),
+            tf.keras.layers.Dropout(0.25),
+            tf.keras.layers.Dense(64),
+            tf.keras.layers.Dropout(0.3),
             tf.keras.layers.Dense(1, activation='sigmoid')
         ])
 

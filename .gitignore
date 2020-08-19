@@ -117,10 +117,14 @@ data/labels_imdb_2.npy
 data/labels_imdb_3.npy
 data/labels_imdb_4.npy
 
-data/*
+
 playground.py
 .DS_store
 
 *.pyc
 
 __pycache__
+
+node_modules
+package-lock.json
+peter_playground.py
