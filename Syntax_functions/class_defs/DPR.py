@@ -40,7 +40,12 @@ class DPR:
         if len(verbs) == 0:
             # print ("Could not find a verb.")
             return
-        return verbs
+            
+        ans = ""
+        for ele in verbs: 
+            ans += str(ele)
+            ans += " "
+        return ans
 
     ## Returns all noun-chunks (subject and object) and verbs, in a dictionary. 
     def get_all(self, sentence):
