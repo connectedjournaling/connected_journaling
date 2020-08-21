@@ -9,12 +9,12 @@ import random
 import keras
 import random
 
-# import sys
-# # This is the only way as far as I can tell to import a file from a different directory
-# sys.path.insert(1, "/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/Helper_functions")
-# import helper_functions as help_fun
+import sys
+# This is the only way as far as I can tell to import a file from a different directory
+sys.path.insert(1, "/Users/petergramaglia/Documents/GitHub/new_connected/connected_journaling/Helper_functions")
+import helper_functions as help_fun
 
-import Helper_functions.helper_functions as help_fun
+# import Helper_functions.helper_functions as help_fun
 
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout, Bidirectional
